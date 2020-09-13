@@ -120,6 +120,7 @@ public class EntrypointPatchHook extends EntrypointPatch {
 					// Detect 20w22a by searching for a specific log message
 					if(type == EnvType.SERVER && hasStrInMethod(mainClass.name, mainMethod.name, mainMethod.desc, "Safe mode active, only vanilla datapack will be loaded", launcher)) {
 						is20w22aServerOrHigher = true;
+						gameEntrypoint = mainClass.name;
 					}
 
 					if (newGameInsn != null) {
@@ -209,32 +210,144 @@ public class EntrypointPatchHook extends EntrypointPatch {
 						it.add(new InsnNode(Opcodes.ACONST_NULL));
 					}
 					it.add(new VarInsnNode(Opcodes.ALOAD, 0));
+
+					finishEntrypoint(type, it);
+					patched = true;
 				} else {
-					// Server-side: Run before datapack reload and before the safe mode warning message
+					// Server-side: Run before `server.properties` is loaded so early logic like world generation is not broken due to being loaded by server properties before mods are initialized.
 					// ----------------
-					// iload 30
-					// ifeq L74
-					// getstatic net/minecraft/server/Main.LOGGER:org.apache.logging.log4j.Logger
-					// ldc "Safe mode active, only vanilla datapack will be loaded"
+					// ldc "server.properties"
+					// iconst_0
+					// anewarray java/lang/String
+					// invokestatic java/nio/file/Paths.get (Ljava/lang/String;[Ljava/lang/String;)Ljava/nio/file/Path;
 					// ----------------
 					debug("20w22a+ detected, patching main method...");
-					LdcInsnNode safeModeLdc = (LdcInsnNode) findInsn(gameMethod, insn -> insn instanceof LdcInsnNode && ((LdcInsnNode) insn).cst.equals("Safe mode active, only vanilla datapack will be loaded"), false);
-					JumpInsnNode safeModeIfEq;
-					AbstractInsnNode node = safeModeLdc.getPrevious();
-					while(!(node instanceof JumpInsnNode)) {
-						node = node.getPrevious();
+
+					// Find the "server.properties".
+					LdcInsnNode serverPropertiesLdc = (LdcInsnNode) findInsn(gameMethod, insn -> insn instanceof LdcInsnNode && ((LdcInsnNode) insn).cst.equals("server.properties"), false);
+
+					// Move before the `server.properties` ldc is pushed onto stack
+					moveBefore(it, serverPropertiesLdc);
+
+					// Detect if we are running exactly 20w22a.
+					// Find the synthetic method where dedicated server instance is created so we can set the game instance.
+					// This cannot be the main method, must be static (all methods are static, so useless to check)
+					// Cannot return a void or boolean
+					// Is only method that returns a class instance
+					// If we do not find this, then we are certain this is 20w22a.
+					MethodNode serverStartMethod = findMethod(mainClass, method -> {
+						if (method.name.equals("main") && method.desc.equals("([Ljava/lang/String;)V")) {
+							return false;
+						}
+
+						final Type methodReturnType = Type.getReturnType(method.desc);
+
+						return methodReturnType.getSort() != Type.BOOLEAN && methodReturnType.getSort() != Type.VOID && methodReturnType.getSort() == Type.OBJECT;
+					});
+
+					if (serverStartMethod == null) {
+						// We are running 20w22a, this requires a separate process for capturing game instance
+						debug("Detected 20w22a");
+					} else {
+						debug("Detected version above 20w22a");
+						// We are not running 20w22a.
+						// This means we need to position ourselves before any dynamic registries are initialized.
+						// Since it is a bit hard to figure out if we are on most 1.16-pre1+ versions.
+						// So if the version is below 1.16.2-pre2, this injection will be before the timer thread hack. This should have no adverse effects.
+
+						// This diagram shows the intended result for 1.16.2-pre2
+						// ----------------
+						// invokestatic ... Bootstrap log missing
+						// <---- target here (1.16-pre1 to 1.16.2-pre1)
+						// ...misc
+						// invokestatic ... (Timer Thread Hack)
+						// <---- target here (1.16.2-pre2+)
+						// ... misc
+						// invokestatic ... (Registry Manager) [Only present in 1.16.2-pre2+]
+						// ldc "server.properties"
+						// ----------------
+
+						// The invokestatic insn we want is just before the ldc
+						AbstractInsnNode previous = serverPropertiesLdc.getPrevious();
+
+						while (true) {
+							if (previous == null) {
+								throw new RuntimeException("Failed to find static method before loading server properties");
+							}
+
+							if (previous.getOpcode() == Opcodes.INVOKESTATIC) {
+								break;
+							}
+
+							previous = previous.getPrevious();
+						}
+
+						boolean foundNode = false;
+
+						// Move the iterator back till we are just before the insn node we wanted
+						while (it.hasPrevious()) {
+							if (it.previous() == previous) {
+								if (it.hasPrevious()) {
+									foundNode = true;
+									// Move just before the method insn node
+									it.previous();
+								}
+
+								break;
+							}
+						}
+
+						if (!foundNode) {
+							throw new RuntimeException("Failed to find static method before loading server properties");
+						}
 					}
-					safeModeIfEq = (JumpInsnNode) node;
-					moveBefore(it, safeModeIfEq.getPrevious());
+
 					it.add(new InsnNode(Opcodes.ACONST_NULL));
 
-					// Currently, fabric doesn't actually do anything with the gameInstance other than verification
-					// Passing the correct gameInstance object would involve moving around several lines of code
-					// in a way that is complicated and probably not version independent.
+					// Pass null for now, we will set the game instance when the dedicated server is created.
 					it.add(new InsnNode(Opcodes.ACONST_NULL));
+
+					finishEntrypoint(type, it); // Inject the hook entrypoint.
+
+					// Time to find the dedicated server ctor to capture game instance
+					if (serverStartMethod == null) {
+						// FIXME: For 20w22a, find the only constructor in the game method that takes a DataFixer.
+						// That is the guaranteed to be dedicated server constructor
+						debug("Server game instance has not be implemented yet for 20w22a");
+					} else {
+						final ListIterator<AbstractInsnNode> serverStartIt = serverStartMethod.instructions.iterator();
+
+						// 1.16-pre1+ Find the only constructor which takes a Thread as it's first parameter
+						MethodInsnNode dedicatedServerConstructor = (MethodInsnNode) findInsn(serverStartMethod, insn -> {
+							if (insn instanceof MethodInsnNode && ((MethodInsnNode) insn).name.equals("<init>")) {
+								Type constructorType = Type.getMethodType(((MethodInsnNode) insn).desc);
+
+								if (constructorType.getArgumentTypes().length <= 0) {
+									return false;
+								}
+
+								return constructorType.getArgumentTypes()[0].getDescriptor().equals("Ljava/lang/Thread;");
+							}
+
+							return false;
+						}, false);
+
+						if (dedicatedServerConstructor == null) {
+							throw new RuntimeException("Could not find dedicated server constructor");
+						}
+
+						// Jump after the <init> call
+						moveAfter(serverStartIt, dedicatedServerConstructor);
+
+						// Duplicate dedicated server instance for loader
+						serverStartIt.add(new InsnNode(Opcodes.DUP));
+						serverStartIt.add(new FieldInsnNode(Opcodes.GETSTATIC, "net/fabricmc/loader/FabricLoader", "INSTANCE", "Lnet/fabricmc/loader/FabricLoader;"));
+						serverStartIt.add(new InsnNode(Opcodes.SWAP));
+						serverStartIt.add(new MethodInsnNode(Opcodes.INVOKEVIRTUAL, "net/fabricmc/loader/FabricLoader", "setGameInstance", "(Ljava/lang/Object;)V", false));
+					}
+
+					patched = true;
 				}
-				finishEntrypoint(type, it);
-				patched = true;
 			} else if (type == EnvType.CLIENT && isApplet) {
 				// Applet-side: field is private static File, run at end
 				// At the beginning, set file field (hook)
