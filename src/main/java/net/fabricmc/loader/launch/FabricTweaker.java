@@ -19,9 +19,9 @@ package net.fabricmc.loader.launch;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.FabricLoader;
 import net.fabricmc.loader.api.entrypoint.PreLaunchEntrypoint;
-import net.fabricmc.loader.entrypoint.minecraft.hooks.EntrypointUtils;
+import net.fabricmc.loader.entrypoint.hooks.EntrypointUtils;
 import net.fabricmc.loader.game.GameProvider;
-import net.fabricmc.loader.game.MinecraftGameProvider;
+import net.fabricmc.loader.minecraft.MinecraftGameProvider;
 import net.fabricmc.loader.launch.common.FabricLauncherBase;
 import net.fabricmc.loader.launch.common.FabricMixinBootstrap;
 import net.fabricmc.loader.util.Arguments;
@@ -52,6 +52,7 @@ import java.util.Map;
 import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
 
+// TODO Move to minecraft-specific classes
 public abstract class FabricTweaker extends FabricLauncherBase implements ITweaker {
 	protected static Logger LOGGER = LogManager.getFormatterLogger("Fabric|Tweaker");
 	protected Arguments arguments;

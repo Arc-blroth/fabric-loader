@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
-package net.fabricmc.loader.game;
+package net.fabricmc.loader.minecraft;
 
-import com.google.gson.Gson;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.entrypoint.EntrypointTransformer;
-import net.fabricmc.loader.entrypoint.minecraft.EntrypointPatchBranding;
-import net.fabricmc.loader.entrypoint.minecraft.EntrypointPatchFML125;
-import net.fabricmc.loader.entrypoint.minecraft.EntrypointPatchHook;
+import net.fabricmc.loader.minecraft.entrypoint.EntrypointPatchBranding;
+import net.fabricmc.loader.minecraft.entrypoint.EntrypointPatchFML125;
+import net.fabricmc.loader.minecraft.entrypoint.EntrypointPatchHook;
+import net.fabricmc.loader.game.GameProvider;
+import net.fabricmc.loader.game.GameProviderHelper;
 import net.fabricmc.loader.launch.common.FabricLauncherBase;
 import net.fabricmc.loader.metadata.BuiltinModMetadata;
-import net.fabricmc.loader.minecraft.McVersionLookup;
 import net.fabricmc.loader.minecraft.McVersionLookup.McVersion;
 import net.fabricmc.loader.util.Arguments;
 import java.io.File;
@@ -40,7 +40,6 @@ import java.util.List;
 import java.util.Optional;
 
 public class MinecraftGameProvider implements GameProvider {
-	private static final Gson GSON = new Gson();
 
 	private EnvType envType;
 	private String entrypoint;
@@ -218,7 +217,7 @@ public class MinecraftGameProvider implements GameProvider {
 		String targetClass = entrypoint;
 
 		if (envType == EnvType.CLIENT && targetClass.contains("Applet")) {
-			targetClass = "net.fabricmc.loader.entrypoint.applet.AppletMain";
+			targetClass = "net.fabricmc.loader.minecraft.entrypoint.applet.AppletMain";
 		}
 
 		try {

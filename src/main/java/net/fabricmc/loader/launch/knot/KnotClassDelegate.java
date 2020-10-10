@@ -19,7 +19,7 @@ package net.fabricmc.loader.launch.knot;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.game.GameProvider;
 import net.fabricmc.loader.launch.common.FabricLauncherBase;
-import net.fabricmc.loader.transformer.FabricTransformer;
+import net.fabricmc.loader.minecraft.transformer.FabricTransformer;
 import net.fabricmc.loader.util.FileSystemUtil;
 import net.fabricmc.loader.util.UrlConversionException;
 import net.fabricmc.loader.util.UrlUtil;
@@ -182,6 +182,7 @@ class KnotClassDelegate {
 		}
 
 		if (input != null) {
+			// TODO Abstract from loading for Minecraft
 			return FabricTransformer.transform(isDevelopment, envType, name, input);
 		}
 

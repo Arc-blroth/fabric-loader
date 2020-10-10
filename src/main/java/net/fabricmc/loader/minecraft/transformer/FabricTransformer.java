@@ -14,17 +14,19 @@
  * limitations under the License.
  */
 
-package net.fabricmc.loader.transformer;
+package net.fabricmc.loader.minecraft.transformer;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.FabricLoader;
-import net.fabricmc.loader.game.MinecraftGameProvider;
+import net.fabricmc.loader.minecraft.MinecraftGameProvider;
 import net.fabricmc.loader.launch.common.FabricLauncherBase;
+import net.fabricmc.loader.transformer.ClassStripper;
+import net.fabricmc.loader.transformer.EnvironmentStrippingData;
+import net.fabricmc.loader.transformer.PackageAccessFixer;
 import net.fabricmc.loader.transformer.accesswidener.AccessWidenerVisitor;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
-import org.objectweb.asm.Opcodes;
 
 public final class FabricTransformer {
 	public static byte[] lwTransformerHook(String name, String transformedName, byte[] bytes) {

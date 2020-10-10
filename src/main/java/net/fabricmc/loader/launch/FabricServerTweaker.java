@@ -18,6 +18,7 @@ package net.fabricmc.loader.launch;
 
 import net.fabricmc.api.EnvType;
 
+// TODO Move to minecraft-specific classes
 public final class FabricServerTweaker extends FabricTweaker {
 	@Override
 	public EnvType getEnvironmentType() {
