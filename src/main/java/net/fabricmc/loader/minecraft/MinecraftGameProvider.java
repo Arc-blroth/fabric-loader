@@ -26,6 +26,7 @@ import net.fabricmc.loader.game.GameProviderHelper;
 import net.fabricmc.loader.launch.common.FabricLauncherBase;
 import net.fabricmc.loader.metadata.BuiltinModMetadata;
 import net.fabricmc.loader.minecraft.McVersionLookup.McVersion;
+import net.fabricmc.loader.minecraft.launch.FabricLauncherMinecraft;
 import net.fabricmc.loader.util.Arguments;
 import java.io.File;
 import java.lang.reflect.Method;
@@ -106,7 +107,7 @@ public class MinecraftGameProvider implements GameProvider {
 			return new File(".").toPath();
 		}
 
-		return FabricLauncherBase.getLaunchDirectory(arguments).toPath();
+		return FabricLauncherMinecraft.getLaunchDirectory(arguments).toPath();
 	}
 
 	@Override
@@ -159,7 +160,7 @@ public class MinecraftGameProvider implements GameProvider {
 		this.arguments = new Arguments();
 		arguments.parse(argStrs);
 
-		FabricLauncherBase.processArgumentMap(arguments, envType);
+		FabricLauncherMinecraft.processArgumentMap(arguments, envType);
 	}
 
 	@Override

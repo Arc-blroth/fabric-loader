@@ -24,6 +24,7 @@ import net.fabricmc.loader.game.GameProvider;
 import net.fabricmc.loader.minecraft.MinecraftGameProvider;
 import net.fabricmc.loader.launch.common.FabricLauncherBase;
 import net.fabricmc.loader.launch.common.FabricMixinBootstrap;
+import net.fabricmc.loader.minecraft.launch.FabricLauncherMinecraft;
 import net.fabricmc.loader.util.Arguments;
 import net.fabricmc.loader.util.UrlConversionException;
 import net.fabricmc.loader.util.UrlUtil;
@@ -53,7 +54,7 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
 
 // TODO Move to minecraft-specific classes
-public abstract class FabricTweaker extends FabricLauncherBase implements ITweaker {
+public abstract class FabricTweaker extends FabricLauncherMinecraft implements ITweaker {
 	protected static Logger LOGGER = LogManager.getFormatterLogger("Fabric|Tweaker");
 	protected Arguments arguments;
 	private LaunchClassLoader launchClassLoader;
@@ -86,7 +87,7 @@ public abstract class FabricTweaker extends FabricLauncherBase implements ITweak
 			arguments.put("assetsDir", assetsDir.getAbsolutePath());
 		}
 
-		FabricLauncherBase.processArgumentMap(arguments, getEnvironmentType());
+		FabricLauncherMinecraft.processArgumentMap(arguments, getEnvironmentType());
 	}
 
 	@Override
@@ -137,7 +138,7 @@ public abstract class FabricTweaker extends FabricLauncherBase implements ITweak
 				}
 
 				Path obfuscated = jarFile.toPath();
-				Path remapped = FabricLauncherBase.deobfuscate(provider.getGameId(), provider.getNormalizedGameVersion(), provider.getLaunchDirectory(), obfuscated, this);
+				Path remapped = deobfuscate(provider.getGameId(), provider.getNormalizedGameVersion(), provider.getLaunchDirectory(), obfuscated, this);
 				if (remapped != obfuscated) {
 					preloadRemappedJar(remapped);
 				}

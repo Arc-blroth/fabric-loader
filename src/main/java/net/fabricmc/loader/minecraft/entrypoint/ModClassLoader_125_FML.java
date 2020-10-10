@@ -17,6 +17,7 @@
 package net.fabricmc.loader.minecraft.entrypoint;
 
 import net.fabricmc.loader.launch.common.FabricLauncherBase;
+import net.fabricmc.loader.minecraft.launch.FabricLauncherMinecraft;
 import net.fabricmc.loader.util.UrlConversionException;
 import net.fabricmc.loader.util.UrlUtil;
 
@@ -85,7 +86,7 @@ public class ModClassLoader_125_FML extends URLClassLoader {
 	 */
 	public File getParentSource() {
 		try {
-			return UrlUtil.asFile(UrlUtil.asUrl(FabricLauncherBase.minecraftJar));
+			return UrlUtil.asFile(UrlUtil.asUrl(FabricLauncherMinecraft.minecraftJar));
 		} catch (UrlConversionException e) {
 			throw new RuntimeException(e);
 		}

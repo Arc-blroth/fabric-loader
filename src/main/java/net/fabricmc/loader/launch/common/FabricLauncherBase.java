@@ -16,11 +16,9 @@
 
 package net.fabricmc.loader.launch.common;
 
-import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.util.mappings.TinyRemapperMappingsHelper;
 import net.fabricmc.loader.util.UrlConversionException;
 import net.fabricmc.loader.util.UrlUtil;
-import net.fabricmc.loader.util.Arguments;
 import net.fabricmc.mapping.tree.TinyTree;
 import net.fabricmc.tinyremapper.OutputConsumerPath;
 import net.fabricmc.tinyremapper.TinyRemapper;
@@ -39,7 +37,6 @@ import java.util.*;
 import java.util.jar.JarFile;
 
 public abstract class FabricLauncherBase implements FabricLauncher {
-	public static Path minecraftJar;
 
 	protected static Logger LOGGER = LogManager.getFormatterLogger("FabricLoader");
 	private static boolean mixinReady;
@@ -49,10 +46,6 @@ public abstract class FabricLauncherBase implements FabricLauncher {
 
 	protected FabricLauncherBase() {
 		setLauncher(this);
-	}
-
-	public static File getLaunchDirectory(Arguments argMap) {
-		return new File(argMap.getOrDefault("gameDir", "."));
 	}
 
 	public static Class<?> getClass(String className) throws ClassNotFoundException {
@@ -66,7 +59,7 @@ public abstract class FabricLauncherBase implements FabricLauncher {
 
 	private static boolean emittedInfo = false;
 
-	protected static Path deobfuscate(String gameId, String gameVersion, Path gameDir, Path jarFile, FabricLauncher launcher) {
+	protected Path deobfuscate(String gameId, String gameVersion, Path gameDir, Path jarFile, FabricLauncher launcher) {
 		Path resultJarFile = jarFile;
 
 		LOGGER.debug("Requesting deobfuscation of " + jarFile.getFileName());
@@ -79,7 +72,7 @@ public abstract class FabricLauncherBase implements FabricLauncher {
 
 			try {
 				if (!Files.exists(jarFile)) {
-					throw new RuntimeException("Could not locate Minecraft: " + jarFile + " not found");
+					throw new RuntimeException("Could not locate game jar: " + jarFile + " not found");
 				}
 
 				Path deobfJarDir = gameDir.resolve(".fabric").resolve("remappedJars");
@@ -203,40 +196,7 @@ public abstract class FabricLauncherBase implements FabricLauncher {
 			throw new RuntimeException(e);
 		}
 
-		if (minecraftJar == null) {
-			minecraftJar = resultJarFile;
-		}
-
 		return resultJarFile;
-	}
-
-	public static void processArgumentMap(Arguments argMap, EnvType envType) {
-		switch (envType) {
-			case CLIENT:
-				if (!argMap.containsKey("accessToken")) {
-					argMap.put("accessToken", "FabricMC");
-				}
-
-				if (!argMap.containsKey("version")) {
-					argMap.put("version", "Fabric");
-				}
-
-				String versionType = "";
-				if(argMap.containsKey("versionType") && !argMap.get("versionType").equalsIgnoreCase("release")){
-					versionType = argMap.get("versionType") + "/";
-				}
-				argMap.put("versionType", versionType + "Fabric");
-
-				if (!argMap.containsKey("gameDir")) {
-					argMap.put("gameDir", getLaunchDirectory(argMap).getAbsolutePath());
-				}
-				break;
-			case SERVER:
-				argMap.remove("version");
-				argMap.remove("gameDir");
-				argMap.remove("assetsDir");
-				break;
-		}
 	}
 
 	protected static void setProperties(Map<String, Object> propertiesA) {
