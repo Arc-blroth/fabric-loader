@@ -26,6 +26,7 @@ import net.fabricmc.loader.launch.common.FabricLauncherBase;
 import net.fabricmc.loader.launch.common.FabricMixinBootstrap;
 import net.fabricmc.loader.minecraft.launch.FabricLauncherMinecraft;
 import net.fabricmc.loader.util.Arguments;
+import net.fabricmc.loader.util.SystemProperties;
 import net.fabricmc.loader.util.UrlConversionException;
 import net.fabricmc.loader.util.UrlUtil;
 import net.minecraft.launchwrapper.IClassTransformer;
@@ -92,8 +93,8 @@ public abstract class FabricTweaker extends FabricLauncherMinecraft implements I
 
 	@Override
 	public void injectIntoClassLoader(LaunchClassLoader launchClassLoader) {
-		isDevelopment = Boolean.parseBoolean(System.getProperty("fabric.development", "false"));
-		Launch.blackboard.put("fabric.development", isDevelopment);
+		isDevelopment = Boolean.parseBoolean(System.getProperty(SystemProperties.DEVELOPMENT, "false"));
+		Launch.blackboard.put(SystemProperties.DEVELOPMENT, isDevelopment);
 		setProperties(Launch.blackboard);
 
 		this.launchClassLoader = launchClassLoader;
@@ -127,7 +128,7 @@ public abstract class FabricTweaker extends FabricLauncherMinecraft implements I
 
 		if (!isDevelopment) {
 			// Obfuscated environment
-			Launch.blackboard.put("fabric.development", false);
+			Launch.blackboard.put(SystemProperties.DEVELOPMENT, false);
 			try {
 				String target = getLaunchTarget();
 				URL loc = launchClassLoader.findResource(target.replace('.', '/') + ".class");
