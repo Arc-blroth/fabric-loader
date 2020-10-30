@@ -147,7 +147,7 @@ public abstract class FabricTweaker extends FabricLauncherMinecraft implements I
 			}
 		}
 
-		FabricLoader.INSTANCE.getAccessWidener().loadFromMods();
+		FabricLoader.INSTANCE.loadAccessWideners();
 
 		MinecraftGameProvider.TRANSFORMER.locateEntrypoints(this);
 
