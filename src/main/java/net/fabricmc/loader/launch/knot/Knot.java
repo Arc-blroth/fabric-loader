@@ -42,39 +42,17 @@ public final class Knot extends FabricLauncherBase {
 
 	private KnotClassLoaderInterface classLoader;
 	private boolean isDevelopment;
-	private EnvType envType;
+	private final EnvType envType;
 	private final File gameJarFile;
 	private GameProvider provider;
 
-	protected Knot(EnvType type, File gameJarFile) {
-		this.envType = type;
+	protected Knot(File gameJarFile) {
+		this.envType = EnvType.UNIVERSAL;
 		this.gameJarFile = gameJarFile;
 	}
 
 	protected void init(String[] args) {
 		setProperties(properties);
-
-		// configure fabric vars
-		if (envType == null) {
-			String side = System.getProperty(SystemProperties.SIDE);
-			if (side == null) {
-				throw new RuntimeException("Please specify side or use a dedicated Knot!");
-			}
-
-			switch (side.toLowerCase(Locale.ROOT)) {
-				case "client":
-					envType = EnvType.CLIENT;
-					break;
-				case "server":
-					envType = EnvType.SERVER;
-					break;
-				default:
-					throw new RuntimeException("Invalid side provided: must be \"client\" or \"server\"!");
-			}
-		}
-
-		// TODO: Restore these undocumented features
-		// String proposedEntrypoint = System.getProperty("fabric.loader.entrypoint");
 
 		List<GameProvider> providers = GameProviders.create();
 		provider = null;
@@ -223,6 +201,6 @@ public final class Knot extends FabricLauncherBase {
 	}
 
 	public static void main(String[] args) {
-		new Knot(null, null).init(args);
+		new Knot(null).init(args);
 	}
 }

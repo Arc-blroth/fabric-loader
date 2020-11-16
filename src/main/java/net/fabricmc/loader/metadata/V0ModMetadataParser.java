@@ -16,18 +16,6 @@
 
 package net.fabricmc.loader.metadata;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import org.apache.logging.log4j.Logger;
-
 import net.fabricmc.loader.api.Version;
 import net.fabricmc.loader.api.VersionParsingException;
 import net.fabricmc.loader.api.metadata.ContactInformation;
@@ -37,6 +25,12 @@ import net.fabricmc.loader.api.metadata.Person;
 import net.fabricmc.loader.lib.gson.JsonReader;
 import net.fabricmc.loader.lib.gson.JsonToken;
 import net.fabricmc.loader.util.version.VersionDeserializer;
+import org.apache.logging.log4j.Logger;
+
+import java.io.IOException;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 final class V0ModMetadataParser {
 	private static final Pattern WEBSITE_PATTERN = Pattern.compile("\\((.+)\\)");
@@ -53,7 +47,7 @@ final class V0ModMetadataParser {
 		// Optional (mod loading)
 		Map<String, ModDependency> requires = new HashMap<>();
 		Map<String, ModDependency> conflicts = new HashMap<>();
-		V0ModMetadata.Mixins mixins = null;
+		List<String> mixins = null;
 		ModEnvironment environment = ModEnvironment.UNIVERSAL; // Default is always universal
 		String initializer = null;
 		List<String> initializers = new ArrayList<>();
@@ -120,17 +114,9 @@ final class V0ModMetadataParser {
 
 				final String rawEnvironment = reader.nextString();
 
-				switch (rawEnvironment) {
-				case "universal":
+				if ("universal".equals(rawEnvironment)) {
 					environment = ModEnvironment.UNIVERSAL;
-					break;
-				case "client":
-					environment = ModEnvironment.CLIENT;
-					break;
-				case "server":
-					environment = ModEnvironment.SERVER;
-					break;
-				default:
+				} else {
 					warnings.add(new ParseWarning(reader.getLineNumber(), reader.getColumn(), rawEnvironment, "Invalid side type"));
 				}
 
@@ -279,10 +265,8 @@ final class V0ModMetadataParser {
 		return new MapBackedContactInformation(contactInfo);
 	}
 
-	private static V0ModMetadata.Mixins readMixins(List<ParseWarning> warnings, JsonReader reader) throws IOException, ParseMetadataException {
-		final List<String> client = new ArrayList<>();
-		final List<String> common = new ArrayList<>();
-		final List<String> server = new ArrayList<>();
+	private static List<String> readMixins(List<ParseWarning> warnings, JsonReader reader) throws IOException, ParseMetadataException {
+		final List<String> mixins = new ArrayList<>();
 
 		if (reader.peek() != JsonToken.BEGIN_OBJECT) {
 			throw new ParseMetadataException("Expected mixins to be an object.", reader);
@@ -293,24 +277,16 @@ final class V0ModMetadataParser {
 		while (reader.hasNext()) {
 			final String environment = reader.nextName();
 
-			switch (environment) {
-			case "client":
-				client.addAll(readStringArray(reader, "client"));
-				break;
-			case "common":
-				common.addAll(readStringArray(reader, "common"));
-				break;
-			case "server":
-				server.addAll(readStringArray(reader, "server"));
-				break;
-			default:
+			if ("common".equals(environment)) {
+				mixins.addAll(readStringArray(reader, "common"));
+			} else {
 				warnings.add(new ParseWarning(reader.getLineNumber(), reader.getColumn(), environment, "Invalid environment type"));
 				reader.skipValue();
 			}
 		}
 
 		reader.endObject();
-		return new V0ModMetadata.Mixins(client, common, server);
+		return mixins;
 	}
 
 	private static List<String> readStringArray(JsonReader reader, String key) throws IOException, ParseMetadataException {

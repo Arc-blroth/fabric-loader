@@ -16,25 +16,15 @@
 
 package net.fabricmc.loader.metadata;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-
-import org.apache.logging.log4j.Logger;
-
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.Version;
-import net.fabricmc.loader.api.metadata.ContactInformation;
-import net.fabricmc.loader.api.metadata.CustomValue;
-import net.fabricmc.loader.api.metadata.ModDependency;
-import net.fabricmc.loader.api.metadata.ModEnvironment;
-import net.fabricmc.loader.api.metadata.Person;
+import net.fabricmc.loader.api.metadata.*;
+import org.apache.logging.log4j.Logger;
+
+import java.util.*;
 
 final class V0ModMetadata extends AbstractModMetadata implements LoaderModMetadata {
-	private static final Mixins EMPTY_MIXINS = new Mixins(Collections.emptyList(), Collections.emptyList(), Collections.emptyList());
+	private static final List<String> EMPTY_MIXINS = Collections.emptyList();
 	// Required
 	private final String id;
 	private final Version version;
@@ -43,7 +33,7 @@ final class V0ModMetadata extends AbstractModMetadata implements LoaderModMetada
 	private final Map<String, ModDependency> requires;
 	private final Map<String, ModDependency> conflicts;
 	private final String languageAdapter = "net.fabricmc.loader.language.JavaLanguageAdapter"; // TODO: Constants class?
-	private final Mixins mixins;
+	private final List<String> mixins;
 	private final ModEnvironment environment; // REMOVEME: Replacing Side in old metadata with this
 	private final String initializer;
 	private final Collection<String> initializers;
@@ -57,7 +47,7 @@ final class V0ModMetadata extends AbstractModMetadata implements LoaderModMetada
 	private final ContactInformation links;
 	private final String license;
 
-	V0ModMetadata(String id, Version version, Map<String, ModDependency> requires, Map<String, ModDependency> conflicts, Mixins mixins, ModEnvironment environment, String initializer, Collection<String> initializers, String name, String description, Map<String, ModDependency> recommends, Collection<Person> authors, Collection<Person> contributors, ContactInformation links, String license) {
+	V0ModMetadata(String id, Version version, Map<String, ModDependency> requires, Map<String, ModDependency> conflicts, List<String> mixins, ModEnvironment environment, String initializer, Collection<String> initializers, String name, String description, Map<String, ModDependency> recommends, Collection<Person> authors, Collection<Person> contributors, ContactInformation links, String license) {
 		this.id = id;
 		this.version = version;
 		this.requires = Collections.unmodifiableMap(requires);
@@ -241,18 +231,7 @@ final class V0ModMetadata extends AbstractModMetadata implements LoaderModMetada
 
 	@Override
 	public Collection<String> getMixinConfigs(EnvType type) {
-		List<String> mixinConfigs = new ArrayList<>(this.mixins.common);
-
-		switch (type) {
-		case CLIENT:
-			mixinConfigs.addAll(this.mixins.client);
-			break;
-		case SERVER:
-			mixinConfigs.addAll(this.mixins.server);
-			break;
-		}
-
-		return mixinConfigs;
+		return Collections.unmodifiableCollection(this.mixins);
 	}
 
 	@Override
@@ -260,21 +239,4 @@ final class V0ModMetadata extends AbstractModMetadata implements LoaderModMetada
 		return null; // intentional null
 	}
 
-	static final class Mixins {
-		final Collection<String> client;
-		final Collection<String> common;
-		final Collection<String> server;
-
-		private Mixins() {
-			this.client = Collections.emptyList();
-			this.common = Collections.emptyList();
-			this.server = Collections.emptyList();
-		}
-
-		Mixins(Collection<String> client, Collection<String> common, Collection<String> server) {
-			this.client = Collections.unmodifiableCollection(client);
-			this.common = Collections.unmodifiableCollection(common);
-			this.server = Collections.unmodifiableCollection(server);
-		}
-	}
 }

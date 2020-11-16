@@ -16,37 +16,14 @@
 
 package net.fabricmc.loader;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.IOException;
-import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import net.fabricmc.loader.api.entrypoint.EntrypointContainer;
-import net.fabricmc.loader.discovery.RuntimeModRemapper;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
+import net.fabricmc.accesswidener.AccessWidener;
+import net.fabricmc.accesswidener.AccessWidenerReader;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.LanguageAdapter;
 import net.fabricmc.loader.api.MappingResolver;
 import net.fabricmc.loader.api.SemanticVersion;
-import net.fabricmc.loader.discovery.ClasspathModCandidateFinder;
-import net.fabricmc.loader.discovery.DirectoryModCandidateFinder;
-import net.fabricmc.loader.discovery.ModCandidate;
-import net.fabricmc.loader.discovery.ModResolutionException;
-import net.fabricmc.loader.discovery.ModResolver;
+import net.fabricmc.loader.api.entrypoint.EntrypointContainer;
+import net.fabricmc.loader.discovery.*;
 import net.fabricmc.loader.game.GameProvider;
 import net.fabricmc.loader.gui.FabricGuiEntry;
 import net.fabricmc.loader.launch.common.FabricLauncherBase;
@@ -55,10 +32,20 @@ import net.fabricmc.loader.metadata.EntrypointMetadata;
 import net.fabricmc.loader.metadata.LoaderModMetadata;
 import net.fabricmc.loader.util.DefaultLanguageAdapter;
 import net.fabricmc.loader.util.SystemProperties;
-import net.fabricmc.accesswidener.AccessWidener;
-import net.fabricmc.accesswidener.AccessWidenerReader;
-
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.objectweb.asm.Opcodes;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * The main class for mod loading operations.
@@ -492,22 +479,6 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 
 	public Logger getLogger() {
 		return LOGGER;
-	}
-
-	/**
-	 * Sets the game instance. This is only used in 20w22a+ by the dedicated server and should not be called by anything else.
-	 */
-	@Deprecated
-	public void setGameInstance(Object gameInstance) {
-		if (this.getEnvironmentType() != EnvType.SERVER) {
-			throw new UnsupportedOperationException("Cannot set game instance on a client!");
-		}
-
-		if (this.gameInstance != null) {
-			throw new UnsupportedOperationException("Cannot overwrite current game instance!");
-		}
-
-		this.gameInstance = gameInstance;
 	}
 
 	@Override

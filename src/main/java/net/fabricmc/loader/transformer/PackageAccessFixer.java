@@ -23,7 +23,7 @@ import org.objectweb.asm.Opcodes;
 
 /**
  * Changes package-private and protected access flags to public.
- * In a development environment, Minecraft classes may be mapped into a package structure with invalid access across
+ * In a development environment, classes may be mapped into a package structure with invalid access across
  * packages. The class verifier will complain unless we simply change package-private and protected to public.
  */
 public class PackageAccessFixer extends ClassVisitor {

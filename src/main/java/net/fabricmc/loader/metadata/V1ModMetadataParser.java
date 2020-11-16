@@ -16,28 +16,16 @@
 
 package net.fabricmc.loader.metadata;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.SortedMap;
-import java.util.TreeMap;
-
-import org.apache.logging.log4j.Logger;
-
 import net.fabricmc.loader.api.Version;
 import net.fabricmc.loader.api.VersionParsingException;
-import net.fabricmc.loader.api.metadata.ContactInformation;
-import net.fabricmc.loader.api.metadata.CustomValue;
-import net.fabricmc.loader.api.metadata.ModDependency;
-import net.fabricmc.loader.api.metadata.ModEnvironment;
-import net.fabricmc.loader.api.metadata.Person;
+import net.fabricmc.loader.api.metadata.*;
 import net.fabricmc.loader.lib.gson.JsonReader;
 import net.fabricmc.loader.lib.gson.JsonToken;
 import net.fabricmc.loader.util.version.VersionDeserializer;
+import org.apache.logging.log4j.Logger;
+
+import java.io.IOException;
+import java.util.*;
 
 final class V1ModMetadataParser {
 	/**
@@ -228,10 +216,6 @@ final class V1ModMetadataParser {
 
 		if (environment.isEmpty() || environment.equals("*")) {
 			return ModEnvironment.UNIVERSAL;
-		} else if (environment.equals("client")) {
-			return ModEnvironment.CLIENT;
-		} else if (environment.equals("server")) {
-			return ModEnvironment.SERVER;
 		} else {
 			throw new ParseMetadataException("Invalid environment type: " + environment + "!", reader);
 		}

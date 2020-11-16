@@ -4,7 +4,6 @@ plugins {
 
 	id 'idea'
 	id 'eclipse'
-	id("fabric-loom") version "0.5-SNAPSHOT"
 }
 
 sourceCompatibility = 1.8
@@ -23,17 +22,14 @@ repositories {
 		name = 'Fabric'
 		url = 'https://maven.fabricmc.net/'
 	}
-	maven {
-		name = 'mojang'
-		url = 'https://libraries.minecraft.net/'
-	}
 }
 
 dependencies {
-	minecraft "com.mojang:minecraft:1.16.3"
-	mappings "net.fabricmc:yarn:1.16.3+build.47:v2"
-
 	// fabric-loader dependencies
+	implementation 'com.google.guava:guava:21.0'
+	implementation 'org.apache.logging.log4j:log4j-core:2.8.1'
+	implementation 'org.apache.logging.log4j:log4j-api:2.8.1'
+
 	implementation "org.ow2.asm:asm:${project.asm_version}"
 	implementation "org.ow2.asm:asm-analysis:${project.asm_version}"
 	implementation "org.ow2.asm:asm-commons:${project.asm_version}"
@@ -58,10 +54,6 @@ dependencies {
 	implementation 'com.google.jimfs:jimfs:1.2-fabric'
 	implementation 'net.fabricmc:fabric-loader-sat4j:2.3.5.4'
 
-	// launchwrapper + dependencies
-	implementation ('net.minecraft:launchwrapper:1.12') {
-		transitive = false
-	}
 	implementation 'net.sf.jopt-simple:jopt-simple:5.0.3'
 
 	testCompileOnly 'org.jetbrains:annotations:19.0.0'
@@ -155,19 +147,12 @@ publishing {
 		mavenJava(MavenPublication) {
 			// add all the jars that should be included when publishing to maven
 			artifact(file("${project.buildDir}/libs/$archivesBaseName-${version}.jar")) {
-				builtBy remapJar
+				builtBy jar
 			}
 			artifact(sourcesJar) {
-				builtBy remapSourcesJar
+				builtBy sourcesJar
 			}
 			artifact javadocJar
-			artifact(file('src/main/resources/fabric-installer.json')) {
-				builtBy remapJar
-			}
-			artifact(file('src/main/resources/fabric-installer.launchwrapper.json')) {
-				builtBy remapJar
-				classifier = "launchwrapper"
-			}
 		}
 	}
 

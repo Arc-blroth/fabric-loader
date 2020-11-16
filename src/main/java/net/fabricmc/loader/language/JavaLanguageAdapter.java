@@ -16,8 +16,6 @@
 
 package net.fabricmc.loader.language;
 
-import net.fabricmc.api.EnvType;
-import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.launch.common.FabricLauncherBase;
 import org.objectweb.asm.ClassReader;
 
@@ -30,19 +28,6 @@ import java.lang.reflect.InvocationTargetException;
 public class JavaLanguageAdapter implements LanguageAdapter {
 	private static boolean canApplyInterface(String itfString) throws IOException {
 		String className = itfString + ".class";
-
-		// TODO: Be a bit more involved
-		switch (itfString) {
-			case "net/fabricmc/api/ClientModInitializer":
-				if (FabricLoader.getInstance().getEnvironmentType() == EnvType.SERVER) {
-					return false;
-				}
-				break;
-			case "net/fabricmc/api/DedicatedServerModInitializer":
-				if (FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT) {
-					return false;
-				}
-		}
 
 		InputStream stream = FabricLauncherBase.getLauncher().getResourceAsStream(className);
 		if (stream == null) {

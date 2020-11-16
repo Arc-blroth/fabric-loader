@@ -3,11 +3,11 @@
   "id": "test",
   "name": "Test Mod",
   "version": "1.0.0",
-  "side": "client",
+  "side": "*",
   "mixins": [
     {
       "config": "fabricmc.test.mixins.client.json",
-      "environment": "client"
+      "environment": "*"
     }
   ],
   "entrypoints": {
