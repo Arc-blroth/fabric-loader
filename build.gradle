@@ -1,5 +1,5 @@
 plugins {
-	id 'java'
+	id 'java-library'
 	id 'maven-publish'
 
 	id 'idea'
@@ -24,15 +24,15 @@ repositories {
 
 dependencies {
 	// fabric-loader dependencies
-	implementation 'com.google.guava:guava:21.0'
-	implementation 'org.apache.logging.log4j:log4j-core:2.8.1'
-	implementation 'org.apache.logging.log4j:log4j-api:2.8.1'
+	api 'com.google.guava:guava:21.0'
+	api 'org.apache.logging.log4j:log4j-core:2.8.1'
+	api 'org.apache.logging.log4j:log4j-api:2.8.1'
 
-	implementation "org.ow2.asm:asm:${project.asm_version}"
-	implementation "org.ow2.asm:asm-analysis:${project.asm_version}"
-	implementation "org.ow2.asm:asm-commons:${project.asm_version}"
-	implementation "org.ow2.asm:asm-tree:${project.asm_version}"
-	implementation "org.ow2.asm:asm-util:${project.asm_version}"
+	api "org.ow2.asm:asm:${project.asm_version}"
+	api "org.ow2.asm:asm-analysis:${project.asm_version}"
+	api "org.ow2.asm:asm-commons:${project.asm_version}"
+	api "org.ow2.asm:asm-tree:${project.asm_version}"
+	api "org.ow2.asm:asm-util:${project.asm_version}"
 
 	// Required for mixin annotation processor
 	annotationProcessor "org.ow2.asm:asm:${project.asm_version}"
@@ -41,18 +41,18 @@ dependencies {
 	annotationProcessor "org.ow2.asm:asm-tree:${project.asm_version}"
 	annotationProcessor "org.ow2.asm:asm-util:${project.asm_version}"
 
-	implementation('net.fabricmc:sponge-mixin:0.8.2+build.24') {
+	api('net.fabricmc:sponge-mixin:0.8.2+build.24') {
 		exclude module: 'launchwrapper'
 		exclude module: 'guava'
 	}
-	implementation 'net.fabricmc:tiny-mappings-parser:0.2.2.14'
-	implementation 'net.fabricmc:tiny-remapper:0.3.0.70'
-	implementation 'net.fabricmc:access-widener:1.0.0'
+	api 'net.fabricmc:tiny-mappings-parser:0.2.2.14'
+	api 'net.fabricmc:tiny-remapper:0.3.0.70'
+	api 'net.fabricmc:access-widener:1.0.0'
 
-	implementation 'com.google.jimfs:jimfs:1.2-fabric'
-	implementation 'net.fabricmc:fabric-loader-sat4j:2.3.5.4'
+	api 'com.google.jimfs:jimfs:1.2-fabric'
+	api 'net.fabricmc:fabric-loader-sat4j:2.3.5.4'
 
-	implementation 'net.sf.jopt-simple:jopt-simple:5.0.3'
+	api 'net.sf.jopt-simple:jopt-simple:5.0.3'
 
 	testCompileOnly 'org.jetbrains:annotations:19.0.0'
 
@@ -127,12 +127,8 @@ publishing {
 	publications {
 		mavenJava(MavenPublication) {
 			// add all the jars that should be included when publishing to maven
-			artifact(file("${project.buildDir}/libs/$archivesBaseName-${version}.jar")) {
-				builtBy jar
-			}
-			artifact(sourcesJar) {
-				builtBy sourcesJar
-			}
+			from components.java
+			artifact sourcesJar
 			artifact javadocJar
 		}
 	}
