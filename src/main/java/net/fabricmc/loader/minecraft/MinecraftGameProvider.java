@@ -41,7 +41,6 @@ import java.util.List;
 import java.util.Optional;
 
 public class MinecraftGameProvider implements GameProvider {
-
 	private EnvType envType;
 	private String entrypoint;
 	private Arguments arguments;
