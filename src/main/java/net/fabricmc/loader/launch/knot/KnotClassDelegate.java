@@ -180,7 +180,7 @@ class KnotClassDelegate {
 			}
 		}
 
-		return null;
+		return input;
 	}
 
 	private static boolean canTransformClass(String name) {
